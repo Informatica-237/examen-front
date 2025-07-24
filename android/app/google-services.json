@@ -1,0 +1,67 @@
+{
+  "project_info": {
+    "project_number": "690847744573",
+    "project_id": "examen-83591",
+    "storage_bucket": "examen-83591.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:690847744573:android:c8e527f2376541ad596054",
+        "android_client_info": {
+          "package_name": "com.android.application"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDpCGJtJDk8K_Ej5kYaYe1g9y-etUI5HyI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:690847744573:android:aa88374ac7e01124596054",
+        "android_client_info": {
+          "package_name": "com.example.examen_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDpCGJtJDk8K_Ej5kYaYe1g9y-etUI5HyI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:690847744573:android:ca7ddbedd5118c6d596054",
+        "android_client_info": {
+          "package_name": "com.example.myapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDpCGJtJDk8K_Ej5kYaYe1g9y-etUI5HyI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

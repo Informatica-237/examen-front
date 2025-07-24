@@ -11,6 +11,9 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8
+  firebase_core: ^2.15.1
+  cloud_firestore: ^4.8.3
+  firebase_auth: ^4.4.0
 
 dev_dependencies:
   flutter_test:
@@ -18,10 +21,10 @@ dev_dependencies:
   flutter_lints: ^5.0.0
   flutter_launcher_icons: ^0.13.1
 
-flutter_launcher_icons:           # ✅ clave correcta
+flutter_launcher_icons:
   android: true
   ios: false
-  remove_alpha_ios: true          # ✅ recomendado para evitar errores en iOS
+  remove_alpha_ios: true
   image_path: "assets/icon/icon.png"
 
 flutter:

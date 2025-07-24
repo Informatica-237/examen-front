@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'firebase_options.dart'; // generado por FlutterFire CLI
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
 }
 
@@ -41,7 +47,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  // Preguntas
   final List<Question> questions = [
     Question(
       text: '¿Cuál es la capital de Argentina?',
@@ -66,6 +71,22 @@ class _MyHomePageState extends State<MyHomePage> {
 
   String resultMessage = '';
   bool examStarted = false;
+  bool isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _signInAnonymously();
+  }
+
+  Future<void> _signInAnonymously() async {
+    try {
+      await FirebaseAuth.instance.signInAnonymously();
+    } catch (e) {
+      // Manejar error si se quiere
+      debugPrint('Error en login anónimo: $e');
+    }
+  }
 
   void startExam() {
     if (nameController.text.isEmpty || dniController.text.isEmpty) {
@@ -76,10 +97,21 @@ class _MyHomePageState extends State<MyHomePage> {
     }
     setState(() {
       examStarted = true;
+      resultMessage = '';
+      selectedAnswers.clear();
     });
   }
 
-  void submitExam() {
+  Future<void> submitExam() async {
+    if (selectedAnswers.length < questions.length) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor, respondé todas las preguntas')),
+      );
+      return;
+    }
+
+    setState(() => isLoading = true);
+
     int correct = 0;
     for (int i = 0; i < questions.length; i++) {
       if (selectedAnswers[i] == questions[i].correctIndex) {
@@ -88,11 +120,39 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     final bool approved = correct >= (questions.length * 0.7);
-    setState(() {
-      resultMessage = approved
-          ? '✅ ¡Felicitaciones! Aprobaste con $correct respuestas correctas.'
-          : '❌ Lo siento. Solo respondiste $correct bien. No aprobaste.';
-    });
+    final user = FirebaseAuth.instance.currentUser;
+
+    try {
+      await FirebaseFirestore.instance.collection('examenes').add({
+        'uid': user?.uid,
+        'nombre': nameController.text.trim(),
+        'dni': dniController.text.trim(),
+        'correctas': correct,
+        'aprobado': approved,
+        'fecha': Timestamp.now(),
+      });
+
+      setState(() {
+        resultMessage = approved
+            ? '✅ ¡Felicitaciones! Aprobaste con $correct respuestas correctas.'
+            : '❌ Lo siento. Solo respondiste $correct bien. No aprobaste.';
+        examStarted = false;
+        nameController.clear();
+        dniController.clear();
+        selectedAnswers.clear();
+      });
+
+      // Cerrar sesión anónima para "resetear" usuario y permitir otro examen
+      await FirebaseAuth.instance.signOut();
+      await _signInAnonymously();
+
+    } catch (e) {
+      setState(() {
+        resultMessage = 'Error al enviar datos. Intentá nuevamente.';
+      });
+    } finally {
+      setState(() => isLoading = false);
+    }
   }
 
   @override
@@ -105,12 +165,13 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: examStarted ? buildExamView() : buildStartForm(),
+        child: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : (examStarted ? buildExamView() : buildStartForm()),
       ),
     );
   }
 
-  // 🧾 Formulario para ingresar nombre y DNI
   Widget buildStartForm() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -153,13 +214,11 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  // 🧪 Vista del examen con saludo
   Widget buildExamView() {
     return ListView.builder(
       itemCount: questions.length + 2,
       itemBuilder: (context, index) {
         if (index == 0) {
-          // Mensaje personalizado
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 12),
             child: Text(
@@ -198,7 +257,6 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           );
         } else {
-          // Botón de enviar y resultado
           return Column(
             children: [
               ElevatedButton.icon(
