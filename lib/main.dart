@@ -69,7 +69,6 @@ class _MyHomePageState extends State<MyHomePage> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController dniController = TextEditingController();
 
-  String resultMessage = '';
   bool examStarted = false;
   bool isLoading = false;
 
@@ -83,7 +82,6 @@ class _MyHomePageState extends State<MyHomePage> {
     try {
       await FirebaseAuth.instance.signInAnonymously();
     } catch (e) {
-      // Manejar error si se quiere
       debugPrint('Error en login anónimo: $e');
     }
   }
@@ -97,7 +95,6 @@ class _MyHomePageState extends State<MyHomePage> {
     }
     setState(() {
       examStarted = true;
-      resultMessage = '';
       selectedAnswers.clear();
     });
   }
@@ -132,24 +129,34 @@ class _MyHomePageState extends State<MyHomePage> {
         'fecha': Timestamp.now(),
       });
 
+      if (!mounted) return;
+      // Navegar a pantalla de resultado
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ResultPage(
+            approved: approved,
+            message: approved
+                ? '✅ ¡Felicitaciones! Aprobaste con $correct respuestas correctas.'
+                : '❌ Lo siento. Solo respondiste $correct bien. No aprobaste.',
+          ),
+        ),
+      );
+
+      // Al volver del resultado, resetear todo para un nuevo examen
+      await FirebaseAuth.instance.signOut();
+      await _signInAnonymously();
+
       setState(() {
-        resultMessage = approved
-            ? '✅ ¡Felicitaciones! Aprobaste con $correct respuestas correctas.'
-            : '❌ Lo siento. Solo respondiste $correct bien. No aprobaste.';
         examStarted = false;
         nameController.clear();
         dniController.clear();
         selectedAnswers.clear();
       });
-
-      // Cerrar sesión anónima para "resetear" usuario y permitir otro examen
-      await FirebaseAuth.instance.signOut();
-      await _signInAnonymously();
-
     } catch (e) {
-      setState(() {
-        resultMessage = 'Error al enviar datos. Intentá nuevamente.';
-      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error al enviar datos. Intentá nuevamente.')),
+      );
     } finally {
       setState(() => isLoading = false);
     }
@@ -269,17 +276,6 @@ class _MyHomePageState extends State<MyHomePage> {
                   padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                 ),
               ),
-              const SizedBox(height: 20),
-              if (resultMessage.isNotEmpty)
-                Text(
-                  resultMessage,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: resultMessage.contains('✅') ? Colors.green : Colors.red,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
             ],
           );
         }
@@ -287,3 +283,57 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
+
+// Nueva pantalla para mostrar el resultado
+class ResultPage extends StatelessWidget {
+  final bool approved;
+  final String message;
+
+  const ResultPage({super.key, required this.approved, required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Resultado del Examen'),
+        backgroundColor: approved ? Colors.green : Colors.red,
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: approved ? Colors.green : Colors.red,
+                ),
+              ),
+              const SizedBox(height: 30),
+              ElevatedButton.icon(
+                icon: const Icon(Icons.home),
+                label: const Text('Inicio'),
+                onPressed: () {
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+                ),
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+// Este código es un ejemplo de una aplicación Flutter que utiliza Firebase para autenticar usuarios anónimos y almacenar resultados de un examen en Firestore.
+// La aplicación permite a los usuarios ingresar su nombre y DNI, responder preguntas de opción múltiple, y luego envía sus respuestas a Firestore.
+// Además, muestra una pantalla de resultados al finalizar el examen, indicando si el usuario aprobó o no, y permite reiniciar el examen para nuevos intentos.
+// Asegúrate de tener configurado Firebase en tu proyecto y de haber generado el archivo `firebase_options.dart` usando FlutterFire CLI para que la aplicación funcione correctamente.
+// También es importante manejar adecuadamente los permisos de Firestore y Auth en tu consola de Firebase
