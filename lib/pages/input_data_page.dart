@@ -18,13 +18,10 @@ class InputDataPage extends StatefulWidget {
 }
 
 class _InputDataPageState extends State<InputDataPage> {
-  // Controladores ahora son static para poder accederlos desde InputDataPage.clearControllers()
   static final TextEditingController nameController = TextEditingController();
   static final TextEditingController dniController = TextEditingController();
   static final TextEditingController emailController = TextEditingController();
   static final TextEditingController phoneController = TextEditingController();
-
-  bool isLoading = false;
 
   @override
   void initState() {
@@ -73,6 +70,25 @@ class _InputDataPageState extends State<InputDataPage> {
         title: const Text('Datos del Participante'),
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            const DrawerHeader(
+              decoration: BoxDecoration(color: Colors.blue),
+              child: Text('Menú', style: TextStyle(color: Colors.white, fontSize: 24)),
+            ),
+            ListTile(
+              leading: const Icon(Icons.lock),
+              title: const Text('Iniciar sesión (Admin)'),
+              onTap: () {
+                Navigator.pop(context); // Cerrar drawer
+                Navigator.pushNamed(context, '/login');
+              },
+            ),
+          ],
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),

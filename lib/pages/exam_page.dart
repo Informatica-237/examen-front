@@ -1,3 +1,4 @@
+import 'dart:async';  // <- Importa para Timer
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -31,10 +32,45 @@ class _ExamPageState extends State<ExamPage> {
   List<int?> selectedAnswers = [];
   bool isSubmitting = false;
 
+  static const int totalTimeInSeconds = 40 * 60; // 40 minutos
+  late int timeLeftInSeconds;
+  Timer? _timer;
+  bool timeExpired = false;
+
   @override
   void initState() {
     super.initState();
     selectedAnswers = List<int?>.filled(widget.questions.length, null);
+    timeLeftInSeconds = totalTimeInSeconds;
+    startTimer();
+  }
+
+  void startTimer() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (timeLeftInSeconds > 0) {
+        setState(() {
+          timeLeftInSeconds--;
+        });
+      } else {
+        setState(() {
+          timeExpired = true;
+        });
+        timer.cancel();
+        submitExam(forceFail: true);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  String formatTime(int seconds) {
+    final minutes = seconds ~/ 60;
+    final secs = seconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
   }
 
   void nextQuestion() {
@@ -45,14 +81,36 @@ class _ExamPageState extends State<ExamPage> {
       return;
     }
 
-    if (currentQuestionIndex < widget.questions.length - 1) {
-      setState(() => currentQuestionIndex++);
-    } else {
-      submitExam();
-    }
+    bool isCorrect = selectedAnswers[currentQuestionIndex] == widget.questions[currentQuestionIndex].correctIndex;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        title: Text(isCorrect ? '¡Correcto!' : 'Incorrecto'),
+        content: Text(isCorrect
+            ? '¡Muy bien! Respuesta correcta.'
+            : 'La respuesta correcta era: "${widget.questions[currentQuestionIndex].options[widget.questions[currentQuestionIndex].correctIndex]}"'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Cierra el diálogo
+              // Avanzar a siguiente pregunta o terminar
+              if (currentQuestionIndex < widget.questions.length - 1) {
+                setState(() => currentQuestionIndex++);
+              } else {
+                submitExam();
+              }
+            },
+            child: const Text('Continuar'),
+          ),
+        ],
+      ),
+    );
   }
 
-  Future<void> submitExam() async {
+  Future<void> submitExam({bool forceFail = false}) async {
+    _timer?.cancel();
     setState(() => isSubmitting = true);
 
     int correct = 0;
@@ -62,7 +120,8 @@ class _ExamPageState extends State<ExamPage> {
       }
     }
 
-    final bool approved = correct >= (widget.questions.length * 0.7);
+    // Si se agotó el tiempo, forzar desaprobación
+    final bool approved = forceFail ? false : (correct >= (widget.questions.length * 0.7));
     final user = FirebaseAuth.instance.currentUser;
 
     try {
@@ -77,6 +136,7 @@ class _ExamPageState extends State<ExamPage> {
         'total': widget.questions.length,
         'aprobado': approved,
         'fecha': Timestamp.now(),
+        'tiempo_expirado': forceFail,
       });
 
       if (!mounted) return;
@@ -88,7 +148,9 @@ class _ExamPageState extends State<ExamPage> {
             approved: approved,
             message: approved
                 ? '✅ ¡Aprobaste con $correct respuestas correctas!'
-                : '❌ No aprobaste. Tuviste $correct respuestas correctas.',
+                : forceFail
+                    ? '⏰ Tiempo agotado. No aprobaste.'
+                    : '❌ No aprobaste. Tuviste $correct respuestas correctas.',
           ),
         ),
       );
@@ -110,6 +172,17 @@ class _ExamPageState extends State<ExamPage> {
         title: Text('Pregunta ${currentQuestionIndex + 1} de ${widget.questions.length}'),
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Center(
+              child: Text(
+                formatTime(timeLeftInSeconds),
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ],
       ),
       body: isSubmitting
           ? const Center(child: CircularProgressIndicator())
