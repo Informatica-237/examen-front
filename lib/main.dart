@@ -1,7 +1,10 @@
+// Archivo: lib/main.dart
+
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
+import 'pages/main_menu.dart'; // <-- ¡Nueva importación!
 import 'pages/input_data_page.dart';
 import 'pages/admin_login_page.dart';
 import 'pages/admin_result_view.dart';
@@ -28,7 +31,8 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/',
       routes: {
-        '/': (context) => const InputDataPage(),
+        '/': (context) => const MainMenuPage(), // <-- ¡Nueva ruta inicial!
+        '/input-data': (context) => const InputDataPage(),
         '/login': (context) => const AdminLoginPage(),
         '/admin': (context) => const AdminResultView(),
       },

@@ -1,52 +1,32 @@
+// lib/data/question_data.dart
+
 import '../models/question.dart';
+import '../models/exam_category.dart';
+import 'categoria-a.dart';
+import 'categoria-b.dart';
+import 'categoria-cye.dart';
 
 final Map<String, List<Question>> questionBank = {
-  'Categoría A': [
-    Question(text: '¿Cuántas ruedas tiene una bicicleta?', options: ['1', '2', '3', '4'], correctIndex: 1, imagePath: 'assets/icon/icon.png',),
-    Question(text: '¿Qué color es el pasto?', options: ['Rojo', 'Azul', 'Verde', 'Negro'], correctIndex: 2, imagePath: 'assets/icon/icon.png', ),
-    Question(text: '¿Qué se usa para cortar papel?', options: ['Cuchara', 'Tijera', 'Lápiz', 'Regla'], correctIndex: 1, imagePath: 'assets/icon/icon.png', ),
-    Question(text: '¿Cuál es el número después del 4?', options: ['3', '4', '5', '6'], correctIndex: 2, imagePath: 'assets/icon/icon.png', ),
-    Question(text: '¿Qué fruta es roja?', options: ['Banana', 'Pera', 'Manzana', 'Uva'], correctIndex: 2, imagePath: 'assets/icon/icon.png', ),
-    Question(text: '¿Qué animal ladra?', options: ['Gato', 'Perro', 'Pájaro', 'Vaca'], correctIndex: 1, imagePath: 'assets/icon/icon.png', ),
-    Question(text: '¿Cuál es el primer día de la semana?', options: ['Lunes', 'Martes', 'Sábado', 'Domingo'], correctIndex: 0, imagePath: 'assets/icon/icon.png', ),
-    Question(text: '¿Qué usamos para escribir?', options: ['Papel', 'Mesa', 'Lápiz', 'Tijera'], correctIndex: 2, imagePath: 'assets/icon/icon.png', ),
-    Question(text: '¿Cuál es el color del cielo despejado?', options: ['Verde', 'Rojo', 'Azul', 'Negro'], correctIndex: 2, imagePath: 'assets/icon/icon.png', ),
-    Question(text: '¿Qué usamos para lavarnos las manos?', options: ['Jabón', 'Cepillo', 'Papel', 'Tenedor'], correctIndex: 0, imagePath: 'assets/icon/icon.png', ),
-  ],
-  'Categoría B': [
-    Question(text: '¿Cuánto es 5 + 3?', options: ['6', '7', '8', '9'], correctIndex: 2, imagePath: 'assets/icon/icon.png', ),
-    Question(text: '¿Qué planeta es el tercero desde el Sol?', options: ['Venus', 'Tierra', 'Marte', 'Júpiter'], correctIndex: 1, imagePath: 'assets/icon/icon.png',),
-    Question(text: '¿Qué animal pone huevos?', options: ['Perro', 'Gallina', 'Gato', 'Caballo'], correctIndex: 1, imagePath: 'assets/icon/icon.png',),
-    Question(text: '¿Qué órgano usamos para oír?', options: ['Nariz', 'Boca', 'Oído', 'Ojo'], correctIndex: 2, imagePath: 'assets/icon/icon.png', ),
-    Question(text: '¿Cuál es el resultado de 6 x 6?', options: ['36', '30', '42', '12'], correctIndex: 0, imagePath: 'assets/icon/icon.png', ),
-    Question(text: '¿Qué país está en Sudamérica?', options: ['España', 'Francia', 'Argentina', 'Canadá'], correctIndex: 2, imagePath: 'assets/icon/icon.png', ),
-    Question(text: '¿Qué figura tiene tres lados?', options: ['Círculo', 'Cuadrado', 'Triángulo', 'Rectángulo'], correctIndex: 2, imagePath: 'assets/icon/icon.png', ),
-    Question(text: '¿Qué animal vive en el agua?', options: ['Perro', 'Delfín', 'Gato', 'Águila'], correctIndex: 1, imagePath: 'assets/icon/icon.png', ),
-    Question(text: '¿Cuántos minutos tiene una hora?', options: ['30', '60', '90', '120'], correctIndex: 1, imagePath: 'assets/icon/icon.png', ),
-    Question(text: '¿Qué usamos para ver?', options: ['Ojos', 'Orejas', 'Manos', 'Pies'], correctIndex: 0, imagePath: 'assets/icon/icon.png', ),
-  ],
-  'Categoría C': [
-    Question(text: '¿Cuál es la capital de Argentina?', options: ['Lima', 'Buenos Aires', 'Montevideo', 'Santiago'], correctIndex: 1, imagePath: 'assets/icon/icon.png', ),
-    Question(text: '¿Qué día sigue al viernes?', options: ['Jueves', 'Sábado', 'Domingo', 'Lunes'], correctIndex: 1, imagePath: 'assets/icon/icon.png', ),
-    Question(text: '¿Qué estación viene después del verano?', options: ['Primavera', 'Otoño', 'Invierno', 'Verano'], correctIndex: 1, imagePath: 'assets/icon/icon.png', ),
-    Question(text: '¿Qué bebida proviene de la vaca?', options: ['Agua', 'Jugo', 'Leche', 'Gaseosa'], correctIndex: 2, imagePath: 'assets/icon/icon.png', ),
-    Question(text: '¿Qué usamos para medir el tiempo?', options: ['Termómetro', 'Reloj', 'Regla', 'Balanza'], correctIndex: 1, imagePath: 'assets/icon/icon.png', ),
-    Question(text: '¿Cuántas patas tiene una araña?', options: ['6', '8', '10', '12'], correctIndex: 1, imagePath: 'assets/icon/icon.png', ),
-    Question(text: '¿Qué color resulta de mezclar rojo y azul?', options: ['Verde', 'Marrón', 'Violeta', 'Amarillo'], correctIndex: 2, imagePath: 'assets/icon/icon.png', ),
-    Question(text: '¿Cuál es el opuesto de alto?', options: ['Grande', 'Pequeño', 'Bajo', 'Ancho'], correctIndex: 2, imagePath: 'assets/icon/icon.png', ),
-    Question(text: '¿Qué continente es el más grande?', options: ['Europa', 'Asia', 'África', 'Oceanía'], correctIndex: 1, imagePath: 'assets/icon/icon.png', ),
-    Question(text: '¿Qué día es feriado nacional en Argentina?', options: ['25 de mayo', '4 de julio', '5 de octubre', '1 de abril'], correctIndex: 0, imagePath: 'assets/icon/icon.png', ),
-  ],
-  'Categoría D': [
-    Question(text: '¿Cuántos continentes hay?', options: ['4', '5', '6', '7'], correctIndex: 3, imagePath: 'assets/icon/icon.png', ),
-    Question(text: '¿Qué instrumento tiene cuerdas?', options: ['Tambor', 'Flauta', 'Violín', 'Trompeta'], correctIndex: 2, imagePath: 'assets/icon/icon.png', ),
-    Question(text: '¿Quién escribió “Don Quijote”?', options: ['Cervantes', 'Shakespeare', 'Borges', 'Poe'], correctIndex: 0, imagePath: 'assets/icon/icon.png', ),
-    Question(text: '¿Cuál es el símbolo del oxígeno?', options: ['H', 'O', 'C', 'N'], correctIndex: 1, imagePath: 'assets/icon/icon.png', ),
-    Question(text: '¿Cuál es la montaña más alta del mundo?', options: ['Aconcagua', 'K2', 'Everest', 'Alpes'], correctIndex: 2, imagePath: 'assets/icon/icon.png', ),
-    Question(text: '¿Cuál es el resultado de 10 ÷ 2?', options: ['2', '4', '5', '10'], correctIndex: 2, imagePath: 'assets/icon/icon.png', ),
-    Question(text: '¿Cuál es el principal gas que respiramos?', options: ['Nitrógeno', 'Oxígeno', 'Hidrógeno', 'Dióxido de carbono'], correctIndex: 1, imagePath: 'assets/icon/icon.png', ),
-    Question(text: '¿Qué animal es el rey de la selva?', options: ['Elefante', 'Tigre', 'León', 'Pantera'], correctIndex: 2, imagePath: 'assets/icon/icon.png', ),
-    Question(text: '¿Qué día comienza el año?', options: ['25 de diciembre', '31 de diciembre', '1 de enero', '15 de enero'], correctIndex: 2, imagePath: 'assets/icon/icon.png', ),
-    Question(text: '¿Qué aparato usamos para llamar por teléfono?', options: ['Televisor', 'Computadora', 'Teléfono', 'Radio'], correctIndex: 2, imagePath: 'assets/icon/icon.png', ),
-  ],
+  'Categoria A': categoriaAQuestions,
+  'Categoria B': categoriaBQuestions,
+  'Categoria C Y E': categoriaCEQuestions,
 };
+
+
+final List<ExamCategory> categories = [
+  ExamCategory(
+    name: 'Categoria A', // Cambiado de 'CLASE A'
+    imagePath: 'assets/icon/categorias/categoria-a.png',
+    description: 'Motovehículos de dos ruedas',
+  ),
+  ExamCategory(
+    name: 'Categoria B', // Cambiado de 'CLASE B'
+    imagePath: 'assets/icon/categorias/categoria-b.png',
+    description: 'Automóviles, camionetas y utilitarios',
+  ),
+  ExamCategory(
+    name: 'Categoria C Y E', // Cambiado de 'CLASE C Y E'
+    imagePath: 'assets/icon/categorias/categoria-cye.png',
+    description: 'Carga, camiones y maquinarias no agrícolas',
+  ),
+];

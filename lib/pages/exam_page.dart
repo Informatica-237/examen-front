@@ -1,4 +1,4 @@
-import 'dart:async';  // <- Importa para Timer
+import 'dart:async'; // <- Importa para Timer
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -32,7 +32,7 @@ class _ExamPageState extends State<ExamPage> {
   List<int?> selectedAnswers = [];
   bool isSubmitting = false;
 
-  static const int totalTimeInSeconds = 40 * 60; // 40 minutos
+  static const int totalTimeInSeconds = 45 * 60; // 40 minutos
   late int timeLeftInSeconds;
   Timer? _timer;
   bool timeExpired = false;
@@ -76,21 +76,27 @@ class _ExamPageState extends State<ExamPage> {
   void nextQuestion() {
     if (selectedAnswers[currentQuestionIndex] == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Debes seleccionar una opción antes de continuar')),
+        const SnackBar(
+          content: Text('Debes seleccionar una opción antes de continuar'),
+        ),
       );
       return;
     }
 
-    bool isCorrect = selectedAnswers[currentQuestionIndex] == widget.questions[currentQuestionIndex].correctIndex;
+    bool isCorrect =
+        selectedAnswers[currentQuestionIndex] ==
+        widget.questions[currentQuestionIndex].correctIndex;
 
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (_) => AlertDialog(
         title: Text(isCorrect ? '¡Correcto!' : 'Incorrecto'),
-        content: Text(isCorrect
-            ? '¡Muy bien! Respuesta correcta.'
-            : 'La respuesta correcta era: "${widget.questions[currentQuestionIndex].options[widget.questions[currentQuestionIndex].correctIndex]}"'),
+        content: Text(
+          isCorrect
+              ? '¡Muy bien! Respuesta correcta.'
+              : 'La respuesta correcta era: "${widget.questions[currentQuestionIndex].options[widget.questions[currentQuestionIndex].correctIndex]}"',
+        ),
         actions: [
           TextButton(
             onPressed: () {
@@ -121,7 +127,9 @@ class _ExamPageState extends State<ExamPage> {
     }
 
     // Si se agotó el tiempo, forzar desaprobación
-    final bool approved = forceFail ? false : (correct >= (widget.questions.length * 0.7));
+    final bool approved = forceFail
+        ? false
+        : (correct >= (widget.questions.length * 0.7));
     final user = FirebaseAuth.instance.currentUser;
 
     try {
@@ -149,14 +157,16 @@ class _ExamPageState extends State<ExamPage> {
             message: approved
                 ? '✅ ¡Aprobaste con $correct respuestas correctas!'
                 : forceFail
-                    ? '⏰ Tiempo agotado. No aprobaste.'
-                    : '❌ No aprobaste. Tuviste $correct respuestas correctas.',
+                ? '⏰ Tiempo agotado. No aprobaste.'
+                : '❌ No aprobaste. Tuviste $correct respuestas correctas.',
           ),
         ),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error al enviar resultados. Intentá de nuevo.')),
+        const SnackBar(
+          content: Text('Error al enviar resultados. Intentá de nuevo.'),
+        ),
       );
     } finally {
       setState(() => isSubmitting = false);
@@ -167,80 +177,102 @@ class _ExamPageState extends State<ExamPage> {
   Widget build(BuildContext context) {
     final question = widget.questions[currentQuestionIndex];
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Pregunta ${currentQuestionIndex + 1} de ${widget.questions.length}'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Center(
-              child: Text(
-                formatTime(timeLeftInSeconds),
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ),
+    return WillPopScope(
+      onWillPop: () async => false, // Bloquea el botón de retroceso
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            'Pregunta ${currentQuestionIndex + 1} de ${widget.questions.length}',
           ),
-        ],
-      ),
-      body: isSubmitting
-          ? const Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    question.text,
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          backgroundColor: const Color(0xFFF2F2F2),
+          foregroundColor: Color(0xFF2E7F94),
+          automaticallyImplyLeading: false,
+          actions: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Center(
+                child: Text(
+                  formatTime(timeLeftInSeconds),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
-                  const SizedBox(height: 16),
-
-                  // Mostrar imagen si la pregunta tiene imagePath
-                  if (question.imagePath != null) ...[
-                    Center(
-                      child: Image.asset(
-                        question.imagePath!,
-                        height: 150,
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                  ],
-
-                  ...List.generate(question.options.length, (index) {
-                    return RadioListTile<int>(
-                      title: Text(question.options[index]),
-                      value: index,
-                      groupValue: selectedAnswers[currentQuestionIndex],
-                      onChanged: (value) {
-                        setState(() {
-                          selectedAnswers[currentQuestionIndex] = value!;
-                        });
-                      },
-                    );
-                  }),
-                  const Spacer(),
-                  Center(
-                    child: ElevatedButton.icon(
-                      onPressed: nextQuestion,
-                      icon: Icon(currentQuestionIndex == widget.questions.length - 1
-                          ? Icons.send
-                          : Icons.arrow_forward),
-                      label: Text(currentQuestionIndex == widget.questions.length - 1
-                          ? 'Enviar'
-                          : 'Siguiente'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
+          ],
+        ),
+        body: isSubmitting
+            ? const Center(child: CircularProgressIndicator())
+            : Container(
+                color: const Color(0xFFF2F2F2),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        question.text,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Mostrar imagen si la pregunta tiene imagePath
+                      if (question.imagePath != null) ...[
+                        Center(
+                          child: Image.asset(
+                            question.imagePath!,
+                            height: 150,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                      ],
+
+                      ...List.generate(question.options.length, (index) {
+                        return RadioListTile<int>(
+                          title: Text(question.options[index]),
+                          value: index,
+                          groupValue: selectedAnswers[currentQuestionIndex],
+                          onChanged: (value) {
+                            setState(() {
+                              selectedAnswers[currentQuestionIndex] = value!;
+                            });
+                          },
+                        );
+                      }),
+                      const Spacer(),
+                      Center(
+                        child: ElevatedButton.icon(
+                          onPressed: nextQuestion,
+                          icon: Icon(
+                            currentQuestionIndex == widget.questions.length - 1
+                                ? Icons.send
+                                : Icons.arrow_forward,
+                          ),
+                          label: Text(
+                            currentQuestionIndex == widget.questions.length - 1
+                                ? 'Enviar'
+                                : 'Siguiente',
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 30,
+                              vertical: 12,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+      ),
     );
   }
 }
