@@ -9,7 +9,7 @@ final List<Question> categoriaBQuestions = [
       '60 km/h',
       '70 km/h',
     ],
-    correctIndex: 1,
+    correctIndices: [1], // Se cambió a una lista de enteros
   ),
   // ... más preguntas
 ];

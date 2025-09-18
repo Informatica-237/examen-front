@@ -9,7 +9,7 @@ final List<Question> categoriaCEQuestions = [
       'Licencia C',
       'Licencia E',
     ],
-    correctIndex: 3,
+    correctIndices: [3], // Se cambió a una lista de enteros
   ),
   // ... más preguntas
 ];

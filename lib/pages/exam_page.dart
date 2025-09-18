@@ -1,4 +1,4 @@
-import 'dart:async'; // <- Importa para Timer
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -29,7 +29,7 @@ class ExamPage extends StatefulWidget {
 
 class _ExamPageState extends State<ExamPage> {
   int currentQuestionIndex = 0;
-  List<int?> selectedAnswers = [];
+  List<Set<int>?> selectedAnswers = []; // CAMBIO: Usamos un Set para múltiples selecciones
   bool isSubmitting = false;
 
   static const int totalTimeInSeconds = 45 * 60; // 40 minutos
@@ -40,7 +40,7 @@ class _ExamPageState extends State<ExamPage> {
   @override
   void initState() {
     super.initState();
-    selectedAnswers = List<int?>.filled(widget.questions.length, null);
+    selectedAnswers = List<Set<int>?>.filled(widget.questions.length, null);
     timeLeftInSeconds = totalTimeInSeconds;
     startTimer();
   }
@@ -74,18 +74,22 @@ class _ExamPageState extends State<ExamPage> {
   }
 
   void nextQuestion() {
-    if (selectedAnswers[currentQuestionIndex] == null) {
+    final selectedSet = selectedAnswers[currentQuestionIndex];
+    if (selectedSet == null || selectedSet.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Debes seleccionar una opción antes de continuar'),
+          content: Text('Debes seleccionar al menos una opción antes de continuar'),
         ),
       );
       return;
     }
 
-    bool isCorrect =
-        selectedAnswers[currentQuestionIndex] ==
-        widget.questions[currentQuestionIndex].correctIndex;
+    final correctSet = widget.questions[currentQuestionIndex].correctIndices.toSet();
+
+    bool isCorrect = selectedSet.length == correctSet.length && selectedSet.containsAll(correctSet);
+    
+    // CAMBIO: Mensaje para mostrar las opciones correctas en caso de error.
+    String correctAnswersText = correctSet.map((index) => widget.questions[currentQuestionIndex].options[index]).join(', ');
 
     showDialog(
       context: context,
@@ -95,7 +99,7 @@ class _ExamPageState extends State<ExamPage> {
         content: Text(
           isCorrect
               ? '¡Muy bien! Respuesta correcta.'
-              : 'La respuesta correcta era: "${widget.questions[currentQuestionIndex].options[widget.questions[currentQuestionIndex].correctIndex]}"',
+              : 'La respuesta(s) correcta(s) era(n): "$correctAnswersText"',
         ),
         actions: [
           TextButton(
@@ -121,7 +125,10 @@ class _ExamPageState extends State<ExamPage> {
 
     int correct = 0;
     for (int i = 0; i < widget.questions.length; i++) {
-      if (selectedAnswers[i] == widget.questions[i].correctIndex) {
+      final selectedSet = selectedAnswers[i]?.toSet() ?? {};
+      final correctSet = widget.questions[i].correctIndices.toSet();
+
+      if (selectedSet.length == correctSet.length && selectedSet.containsAll(correctSet)) {
         correct++;
       }
     }
@@ -185,7 +192,7 @@ class _ExamPageState extends State<ExamPage> {
             'Pregunta ${currentQuestionIndex + 1} de ${widget.questions.length}',
           ),
           backgroundColor: const Color(0xFFF2F2F2),
-          foregroundColor: Color(0xFF2E7F94),
+          foregroundColor: const Color(0xFF2E7F94),
           automaticallyImplyLeading: false,
           actions: [
             Padding(
@@ -219,8 +226,6 @@ class _ExamPageState extends State<ExamPage> {
                         ),
                       ),
                       const SizedBox(height: 16),
-
-                      // Mostrar imagen si la pregunta tiene imagePath
                       if (question.imagePath != null) ...[
                         Center(
                           child: Image.asset(
@@ -231,15 +236,21 @@ class _ExamPageState extends State<ExamPage> {
                         ),
                         const SizedBox(height: 20),
                       ],
-
                       ...List.generate(question.options.length, (index) {
-                        return RadioListTile<int>(
+                        final selectedSet = selectedAnswers[currentQuestionIndex];
+                        return CheckboxListTile( // CAMBIO: Usamos CheckboxListTile
                           title: Text(question.options[index]),
-                          value: index,
-                          groupValue: selectedAnswers[currentQuestionIndex],
-                          onChanged: (value) {
+                          value: selectedSet != null && selectedSet.contains(index),
+                          onChanged: (bool? value) {
                             setState(() {
-                              selectedAnswers[currentQuestionIndex] = value!;
+                              if (selectedAnswers[currentQuestionIndex] == null) {
+                                selectedAnswers[currentQuestionIndex] = {};
+                              }
+                              if (value == true) {
+                                selectedAnswers[currentQuestionIndex]!.add(index);
+                              } else {
+                                selectedAnswers[currentQuestionIndex]!.remove(index);
+                              }
                             });
                           },
                         );
